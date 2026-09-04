@@ -1,0 +1,41 @@
+name: Production Pipeline
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Unit + integration + security + tenant-isolation tests
+        run: npm test
+      - name: Scanner quality gate
+        run: npm run quality:benchmark
+      - name: Container build (api)
+        run: docker build -f docker/api.Dockerfile -t compliance-api:ci .
+      - name: Container build (web)
+        run: docker build -f docker/web.Dockerfile -t compliance-web:ci .
+      - name: Production readiness gate
+        run: npm run production:check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scanner-quality-report
+          path: benchmarks/scanner-quality-report.*
+
+# Deployment is intentionally not automated here. A production deploy should
+# only be triggered manually (or by a separate, explicitly configured release
+# job) after every job above has passed - see docs/LAUNCH-CHECKLIST.md.

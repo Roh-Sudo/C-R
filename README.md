@@ -105,6 +105,27 @@ Upload only redacted result metadata to the local API with `COMPLIANCE_API_URL`,
 
 Project tokens are generated with cryptographic randomness and stored as SHA-256 hashes. They are returned completely only when a project is created. The local API also applies request-size limits, CORS headers, `nosniff`, and frame protections. Authentication is project-scoped; production deployments still need TLS, rate limiting, CSRF strategy, and a real database adapter.
 
+## Commercialization (Phase 9)
+
+Phase 9 adds a billing/entitlement architecture in `packages/billing-core`: centralized `PLANS` (Free, Team, Business, Enterprise), a capability-based entitlement engine (`canUse()`/`getLimit()` instead of scattered `plan === 'BUSINESS'` checks), usage metering, monthly billing periods, soft/hard limit enforcement, a 14-day trial lifecycle, a `BillingProvider` abstraction with a fully functional `LocalBillingProvider` for local/test simulation, billing audit events, a privacy-safe commercial event model, activation/time-to-first-value helpers, and a minimal sales-lead model.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/billing/plans` | Public plan catalog (pricing page) |
+| GET | `/api/organizations/:id/billing` | Subscription, trial status, and usage snapshot |
+| POST | `/api/organizations/:id/billing/checkout` | Start a simulated checkout session |
+| POST | `/api/billing/webhook` | Signed, idempotent billing provider webhook |
+| POST | `/api/organizations/:id/billing/change-plan` | Upgrade/downgrade (data is never deleted) |
+| POST | `/api/organizations/:id/billing/cancel` | Cancel at period end (distinct from deleting the org) |
+| GET | `/api/organizations/:id/usage` | Usage dashboard data with plan limits |
+| GET/POST | `/api/organizations/:id/members` | List/invite members (enforces the member limit and approved domains) |
+| POST | `/api/leads` | Rate-limited enterprise pilot request capture |
+| GET/PATCH | `/api/admin/leads`, GET `/api/admin/commercial` | Internal admin views, protected by a separate `x-admin-token`, never by tenant role |
+| GET | `/api/organizations/:id/export` | Organization data export (JSON), secrets excluded |
+| GET | `/api/organizations/:id/audit/export` | Audit export (JSON or CSV, date-filterable) |
+
+No real payment provider is connected. See [docs/SECURITY-QUESTIONNAIRE.md](docs/SECURITY-QUESTIONNAIRE.md), [docs/DATA-FLOW.md](docs/DATA-FLOW.md), and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md) for the security architecture, and the dashboard's Billing/Pricing pages for the customer-facing experience.
+
 ## Dashboard Pages
 
 The responsive dashboard includes Dashboard, Projects, Scans, Findings, Rules, Frameworks, and Settings navigation. Dashboard metrics are derived from API project/finding data and include a technical Compliance Risk Score, severity distribution, project posture, recent findings, and risk trend presentation. The score is a transparent demo heuristic: `100 - (critical × 30 + high × 12 + medium × 4 + low × 1)`, clamped to 0–100. It is not an industry standard or legal compliance score.

@@ -21,7 +21,11 @@
     "seed": "node dist/apps/api/src/index.js --seed",
     "demo:seed": "npm run seed",
     "quality:benchmark": "npm run build && node dist/benchmarks/scripts/run.js",
-    "quality:performance": "npm run build && node dist/benchmarks/scripts/performance.js"
+    "quality:performance": "npm run build && node dist/benchmarks/scripts/performance.js",
+    "db:migrate:status": "node scripts/db-migrate.mjs status",
+    "db:migrate:deploy": "node scripts/db-migrate.mjs deploy",
+    "production:check": "node scripts/production-check.mjs",
+    "release:check": "npm run build && npm test && npm run quality:benchmark && node -e \"console.log('version', require('./package.json').version)\""
   },
   "engines": {
     "node": ">=20"
@@ -37,6 +41,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
+    "pg": "^8.23.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   }

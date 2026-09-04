@@ -1,0 +1,11 @@
+node_modules
+dist
+.data
+coverage
+*.sarif
+*.jsonl
+.git
+.github
+benchmarks/scanner-quality-report.*
+docker
+docs
