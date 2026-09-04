@@ -1,0 +1,17 @@
+version: 1
+systems:
+  acme-support-ai:
+    owner: ai-platform-team
+    purpose: customer-support
+    provider: OpenAI
+    model: configured-by-environment
+    data:
+      personal_data: true
+      sensitive_data: false
+    human_oversight:
+      required: true
+    output_usage:
+      customer_facing: true
+      automated_decision: false
+    review:
+      status: review_required

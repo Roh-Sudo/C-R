@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: compliance
+      POSTGRES_PASSWORD: compliance
+      POSTGRES_DB: compliance
+    ports:
+      - '5432:5432'
+    volumes:
+      - compliance-postgres:/var/lib/postgresql/data
+volumes:
+  compliance-postgres:

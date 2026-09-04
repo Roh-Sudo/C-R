@@ -1,0 +1,339 @@
+{
+  "metadata": {
+    "scanner": "Compliance-as-Code",
+    "version": "0.2.0",
+    "timestamp": "2026-09-04T01:23:20.802Z",
+    "disclaimer": "Technical findings are potential risks for review and do not certify legal or regulatory compliance."
+  },
+  "scannedPath": "examples/vulnerable-app",
+  "filesScanned": 2,
+  "skippedFiles": 0,
+  "malformedSuppressions": 0,
+  "durationMs": 5,
+  "findings": [
+    {
+      "ruleId": "SEC-001",
+      "title": "Hardcoded secret",
+      "description": "A provider-style secret is assigned in source.",
+      "severity": "CRITICAL",
+      "category": "SECRET",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 5,
+      "evidence": "const apiKey=[REDACTED];",
+      "remediation": "Revoke and rotate the value, then load it from a managed secret store.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.AA",
+          "relationship": "related",
+          "explanation": "This finding relates to identity and access protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "6e11ac4f8f537581464b140a"
+    },
+    {
+      "ruleId": "SEC-006",
+      "title": "Hardcoded password assignment",
+      "description": "A password-like field is assigned a non-placeholder literal.",
+      "severity": "HIGH",
+      "category": "SECRET",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 4,
+      "evidence": "const password=[REDACTED];",
+      "remediation": "Use environment injection or a managed secret store.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.AA",
+          "relationship": "related",
+          "explanation": "This finding relates to identity and access protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "8cb24f8795ec22ad9bc1bc80"
+    },
+    {
+      "ruleId": "PII-001",
+      "title": "Potential SSN-like value",
+      "description": "A value resembles a US Social Security number; this is a review signal, not proof of personal data.",
+      "severity": "HIGH",
+      "category": "PII",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 2,
+      "evidence": "const fakeSsn = '[SSN-REDACTED]';",
+      "remediation": "Remove real identifiers and use synthetic fixtures.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "MEDIUM",
+      "fingerprint": "02db1a15ef67ac11d387b3d4"
+    },
+    {
+      "ruleId": "PII-004",
+      "title": "Sensitive data exposed in configuration",
+      "description": "A configuration field contains a sensitive value rather than a reference.",
+      "severity": "MEDIUM",
+      "category": "PII",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 2,
+      "evidence": "const fakeSsn = '[SSN-REDACTED]';",
+      "remediation": "Move sensitive configuration to protected runtime injection.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "MEDIUM",
+      "fingerprint": "c1948e2fdb38b38ffc0e3066"
+    },
+    {
+      "ruleId": "PII-004",
+      "title": "Sensitive data exposed in configuration",
+      "description": "A configuration field contains a sensitive value rather than a reference.",
+      "severity": "MEDIUM",
+      "category": "PII",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 3,
+      "evidence": "const fakeEmail = 'demo.user@example.test';",
+      "remediation": "Move sensitive configuration to protected runtime injection.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "MEDIUM",
+      "fingerprint": "d4a1717a95a5c495d2f0fddb"
+    },
+    {
+      "ruleId": "LOG-001",
+      "title": "Password logged",
+      "description": "A logging call includes a password-like field.",
+      "severity": "HIGH",
+      "category": "LOGGING",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 11,
+      "evidence": "console.log(password);",
+      "remediation": "Remove credentials from logs or redact them before logging.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "7a40209087c8291c17d4993a"
+    },
+    {
+      "ruleId": "LOG-002",
+      "title": "Token or API key logged",
+      "description": "A logging call includes a token or API key.",
+      "severity": "HIGH",
+      "category": "LOGGING",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 13,
+      "evidence": "logger.info(apiKey);",
+      "remediation": "Remove tokens from logs and rotate any exposed credential.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "256116e4339bec28c6d55615"
+    },
+    {
+      "ruleId": "LOG-003",
+      "title": "SSN-like field logged",
+      "description": "A logging call includes an SSN-like field.",
+      "severity": "HIGH",
+      "category": "LOGGING",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 10,
+      "evidence": "console.log(fakeSsn);",
+      "remediation": "Remove identifiers from logs or apply structured redaction.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.DS",
+          "relationship": "related",
+          "explanation": "This finding relates to protecting data security."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "994022ef8392250eabc31fa7"
+    },
+    {
+      "ruleId": "CFG-001",
+      "title": "TLS verification disabled",
+      "description": "TLS certificate verification is explicitly disabled.",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 7,
+      "evidence": "const tlsOptions = { rejectUnauthorized: false };",
+      "remediation": "Enable certificate verification and use a trusted CA.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.PS",
+          "relationship": "related",
+          "explanation": "This finding relates to platform and configuration protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "a9daa80a1156d087593cca41"
+    },
+    {
+      "ruleId": "CFG-002",
+      "title": "Permissive CORS",
+      "description": "A wildcard CORS origin may expose responses to arbitrary sites.",
+      "severity": "MEDIUM",
+      "category": "CONFIGURATION",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 8,
+      "evidence": "const cors = { origin: '*' };",
+      "remediation": "Allow only trusted origins.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.PS",
+          "relationship": "related",
+          "explanation": "This finding relates to platform and configuration protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "cf8cdcea6578c6875be4c448"
+    },
+    {
+      "ruleId": "CFG-004",
+      "title": "Sensitive HTTP endpoint",
+      "description": "A likely sensitive service endpoint uses plaintext HTTP.",
+      "severity": "MEDIUM",
+      "category": "SECURITY",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 6,
+      "evidence": "const serviceUrl = 'http://internal-api.example.test';",
+      "remediation": "Use HTTPS/TLS for service traffic.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.PS",
+          "relationship": "related",
+          "explanation": "This finding relates to platform and configuration protection."
+        }
+      ],
+      "confidence": "MEDIUM",
+      "fingerprint": "6c80a616295e9a8d7f097850"
+    },
+    {
+      "ruleId": "CFG-005",
+      "title": "Credentials exposed in configuration",
+      "description": "A configuration key contains a hardcoded credential value.",
+      "severity": "HIGH",
+      "category": "CONFIGURATION",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 4,
+      "evidence": "const password=[REDACTED];",
+      "remediation": "Use a secret manager or runtime environment injection.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.AA",
+          "relationship": "related",
+          "explanation": "This finding relates to identity and access protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "7d80f2c4a62fed14e7667d71"
+    },
+    {
+      "ruleId": "CFG-005",
+      "title": "Credentials exposed in configuration",
+      "description": "A configuration key contains a hardcoded credential value.",
+      "severity": "HIGH",
+      "category": "CONFIGURATION",
+      "filePath": "examples/vulnerable-app/app.ts",
+      "line": 5,
+      "evidence": "const apiKey=[REDACTED];",
+      "remediation": "Use a secret manager or runtime environment injection.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.AA",
+          "relationship": "related",
+          "explanation": "This finding relates to identity and access protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "2f211a5a45a492d0d81148bd"
+    },
+    {
+      "ruleId": "SEC-005",
+      "title": "Database URL with embedded credentials",
+      "description": "A database URL contains a username and password.",
+      "severity": "CRITICAL",
+      "category": "SECRET",
+      "filePath": "examples/vulnerable-app/application.properties",
+      "line": 2,
+      "evidence": "database.url=postgres://demo:[REDACTED]@db.example.test/app",
+      "remediation": "Inject database credentials at runtime and rotate exposed values.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.AA",
+          "relationship": "related",
+          "explanation": "This finding relates to identity and access protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "dd5ab2369ed2191cbda6a3bc"
+    },
+    {
+      "ruleId": "CFG-003",
+      "title": "Debug mode enabled",
+      "description": "Debug mode is enabled and may expose implementation details.",
+      "severity": "MEDIUM",
+      "category": "CONFIGURATION",
+      "filePath": "examples/vulnerable-app/application.properties",
+      "line": 3,
+      "evidence": "debug=true",
+      "remediation": "Disable debug mode in production.",
+      "frameworks": [
+        {
+          "framework": "NIST-CSF-2.0",
+          "control": "PR.PS",
+          "relationship": "related",
+          "explanation": "This finding relates to platform and configuration protection."
+        }
+      ],
+      "confidence": "HIGH",
+      "fingerprint": "55a9e39a8df1faee98a50387"
+    }
+  ],
+  "suppressedFindings": [],
+  "baselineFindings": [],
+  "severityCounts": {
+    "LOW": 0,
+    "MEDIUM": 5,
+    "HIGH": 8,
+    "CRITICAL": 2
+  },
+  "status": "FAILED"
+}

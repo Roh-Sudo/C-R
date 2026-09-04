@@ -1,0 +1,42 @@
+name: Compliance Scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    env:
+      COMPLIANCE_API_URL: ${{ secrets.COMPLIANCE_API_URL }}
+      COMPLIANCE_PROJECT_ID: ${{ secrets.COMPLIANCE_PROJECT_ID }}
+      COMPLIANCE_API_TOKEN: ${{ secrets.COMPLIANCE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: node dist/apps/cli/src/index.js . --format console --fail-on high | tee compliance-results.txt
+      - run: node dist/apps/cli/src/index.js . --format json --fail-on high --output compliance-results.json
+      - if: always()
+        run: node dist/apps/cli/src/index.js . --format sarif --fail-on high --output compliance-results.sarif
+      - if: ${{ env.COMPLIANCE_API_URL != '' && env.COMPLIANCE_PROJECT_ID != '' && env.COMPLIANCE_API_TOKEN != '' }}
+        run: node dist/apps/cli/src/index.js . --format quiet --upload --fail-on high
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compliance-sarif
+          path: |
+            compliance-results.txt
+            compliance-results.json
+            compliance-results.sarif
+
+# Uploading SARIF to GitHub code scanning can require security-events: write.
+# Keep this workflow functional in repositories where that permission is unavailable.

@@ -1,0 +1,3 @@
+# Rule Development
+
+Every rule needs a stable ID, version, status, category, severity, confidence, remediation with verification guidance, framework explanation, supported languages, positive and negative tests, synthetic benchmark fixtures, evidence redaction checks, and a regex/performance review. Confirmed scanner bugs should become synthetic regression fixtures and tests. Use `compliance-check explain RULE-ID` to inspect the public detector contract.

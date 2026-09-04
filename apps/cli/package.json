@@ -1,0 +1,7 @@
+{
+  "name": "@compliance-as-code/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "compliance-check": "./dist/index.js" }
+}

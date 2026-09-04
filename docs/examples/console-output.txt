@@ -1,0 +1,95 @@
+Compliance-as-Code
+
+Scanning: examples/vulnerable-app
+Files scanned: 2
+Skipped files: 0
+Duration: 6 ms
+
+CRITICAL
+SEC-001 Hardcoded secret
+  examples/vulnerable-app/app.ts:5
+  Remediation: Revoke and rotate the value, then load it from a managed secret store.
+  Framework: NIST-CSF-2.0 PR.AA
+
+SEC-005 Database URL with embedded credentials
+  examples/vulnerable-app/application.properties:2
+  Remediation: Inject database credentials at runtime and rotate exposed values.
+  Framework: NIST-CSF-2.0 PR.AA
+
+HIGH
+SEC-006 Hardcoded password assignment
+  examples/vulnerable-app/app.ts:4
+  Remediation: Use environment injection or a managed secret store.
+  Framework: NIST-CSF-2.0 PR.AA
+
+PII-001 Potential SSN-like value
+  examples/vulnerable-app/app.ts:2
+  Remediation: Remove real identifiers and use synthetic fixtures.
+  Framework: NIST-CSF-2.0 PR.DS
+
+LOG-001 Password logged
+  examples/vulnerable-app/app.ts:11
+  Remediation: Remove credentials from logs or redact them before logging.
+  Framework: NIST-CSF-2.0 PR.DS
+
+LOG-002 Token or API key logged
+  examples/vulnerable-app/app.ts:13
+  Remediation: Remove tokens from logs and rotate any exposed credential.
+  Framework: NIST-CSF-2.0 PR.DS
+
+LOG-003 SSN-like field logged
+  examples/vulnerable-app/app.ts:10
+  Remediation: Remove identifiers from logs or apply structured redaction.
+  Framework: NIST-CSF-2.0 PR.DS
+
+CFG-001 TLS verification disabled
+  examples/vulnerable-app/app.ts:7
+  Remediation: Enable certificate verification and use a trusted CA.
+  Framework: NIST-CSF-2.0 PR.PS
+
+CFG-005 Credentials exposed in configuration
+  examples/vulnerable-app/app.ts:4
+  Remediation: Use a secret manager or runtime environment injection.
+  Framework: NIST-CSF-2.0 PR.AA
+
+CFG-005 Credentials exposed in configuration
+  examples/vulnerable-app/app.ts:5
+  Remediation: Use a secret manager or runtime environment injection.
+  Framework: NIST-CSF-2.0 PR.AA
+
+MEDIUM
+PII-004 Sensitive data exposed in configuration
+  examples/vulnerable-app/app.ts:2
+  Remediation: Move sensitive configuration to protected runtime injection.
+  Framework: NIST-CSF-2.0 PR.DS
+
+PII-004 Sensitive data exposed in configuration
+  examples/vulnerable-app/app.ts:3
+  Remediation: Move sensitive configuration to protected runtime injection.
+  Framework: NIST-CSF-2.0 PR.DS
+
+CFG-002 Permissive CORS
+  examples/vulnerable-app/app.ts:8
+  Remediation: Allow only trusted origins.
+  Framework: NIST-CSF-2.0 PR.PS
+
+CFG-004 Sensitive HTTP endpoint
+  examples/vulnerable-app/app.ts:6
+  Remediation: Use HTTPS/TLS for service traffic.
+  Framework: NIST-CSF-2.0 PR.PS
+
+CFG-003 Debug mode enabled
+  examples/vulnerable-app/application.properties:3
+  Remediation: Disable debug mode in production.
+  Framework: NIST-CSF-2.0 PR.PS
+
+Summary
+Critical: 2
+High: 8
+Medium: 5
+Low: 0
+Suppressed: 0
+Malformed suppressions: 0
+Baselined: 0
+
+Result: FAILED

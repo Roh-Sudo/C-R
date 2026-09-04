@@ -1,0 +1,5 @@
+{
+  "failOn": "high",
+  "ignore": ["node_modules", ".git", "dist", "build", "coverage", "vendor"],
+  "rules": {}
+}

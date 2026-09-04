@@ -1,0 +1,13 @@
+[
+  {"fixture":"secrets/aws-key.ts","ruleId":"SEC-002","expected":true,"severity":"CRITICAL","confidence":"HIGH","label":"TRUE_POSITIVE"},
+  {"fixture":"secrets/clean-secret.ts","ruleId":"SEC-002","expected":false,"label":"TRUE_NEGATIVE"},
+  {"fixture":"pii/ssn.ts","ruleId":"PII-001","expected":true,"severity":"HIGH","confidence":"MEDIUM","label":"TRUE_POSITIVE"},
+  {"fixture":"pii/version.ts","ruleId":"PII-001","expected":false,"label":"TRUE_NEGATIVE"},
+  {"fixture":"logging/password.ts","ruleId":"LOG-001","expected":true,"severity":"HIGH","confidence":"HIGH","label":"TRUE_POSITIVE"},
+  {"fixture":"logging/safe.ts","ruleId":"LOG-001","expected":false,"label":"TRUE_NEGATIVE"},
+  {"fixture":"security/tls.py","ruleId":"CFG-001","expected":true,"severity":"HIGH","confidence":"HIGH","label":"TRUE_POSITIVE"},
+  {"fixture":"ai/openai.ts","ruleId":"AI-001","expected":true,"severity":"HIGH","confidence":"MEDIUM","label":"TRUE_POSITIVE"},
+  {"fixture":"ai/comment.ts","ruleId":"AI-007","expected":false,"label":"TRUE_NEGATIVE"},
+  {"fixture":"config/debug.json","ruleId":"CFG-003","expected":true,"severity":"MEDIUM","confidence":"HIGH","label":"TRUE_POSITIVE"},
+  {"fixture":"clean/java.java","ruleId":"LOG-001","expected":false,"label":"TRUE_NEGATIVE"}
+]

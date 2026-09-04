@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.data/
+apps/web/dist/
+benchmarks/scanner-quality-report.*
+*.sarif
+*.jsonl

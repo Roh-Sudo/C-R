@@ -1,0 +1,43 @@
+{
+  "name": "compliance-as-code",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local engineering-native compliance risk scanner.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "compliance:scan": "node dist/apps/cli/src/index.js . --fail-on high",
+    "compliance:scan:vulnerable": "node dist/apps/cli/src/index.js examples/vulnerable-app --format console",
+    "compliance:scan:clean": "node dist/apps/cli/src/index.js examples/clean-app --format console",
+    "api": "node dist/apps/api/src/index.js",
+    "dev": "npm run build && concurrently \"npm run api\" \"vite --config apps/web/vite.config.ts\"",
+    "seed": "node dist/apps/api/src/index.js --seed",
+    "demo:seed": "npm run seed",
+    "quality:benchmark": "npm run build && node dist/benchmarks/scripts/run.js",
+    "quality:performance": "npm run build && node dist/benchmarks/scripts/performance.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}
