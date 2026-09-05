@@ -8,6 +8,10 @@ The scanner recognizes OpenAI, Anthropic, Google Gemini, AWS Bedrock, Hugging Fa
 
 The API endpoint `/api/ai-components` exposes inventory records created during authenticated scan ingestion. Components begin in `REVIEW_REQUIRED` and can later be managed as `DISCOVERED`, `APPROVED`, or `DEPRECATED` by a product workflow.
 
+Discovery requires an active import or client construction in non-comment source. A provider named only in a dependency manifest, or only in a comment or documentation block, is deliberately not recorded as an AI system: a declared dependency is not evidence that an integration exists, and a mention is not an integration. Those cases produce no inventory record at all rather than a low-confidence one.
+
+The inventory uses historical detection semantics. A record is inserted on first discovery and its `lastDetected` timestamp is refreshed by later scans that still observe it. Removing the integration from the code does not delete the record; the entry simply stops being refreshed, and a stale `lastDetected` (shown in the dashboard next to the discovery method) is the signal that the integration may be gone. Retiring a record is a human governance decision, not something a scan performs.
+
 ## Governance Declaration and Drift
 
 Declare intended systems in `ai-governance.yml` with owner, purpose, provider, model, data handling, human oversight, output usage, and review status. Declarations are not automatically trusted. Compare them with observed scan components and data-flow signals. Differences are governance drift and require review.

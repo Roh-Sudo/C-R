@@ -56,7 +56,7 @@ npm run api                 # API: http://localhost:8787
 npx vite --config apps/web/vite.config.ts  # Dashboard: http://localhost:5173
 ```
 
-For the PostgreSQL-backed pilot, start the local database, apply migrations, and verify `GET /ready` reports `postgresql-runtime-state`:
+For the PostgreSQL-backed pilot, start the local database, apply migrations, and verify `GET /ready` reports `postgresql-normalized-scans+runtime-state`:
 
 ```bash
 docker compose up -d postgres
@@ -64,6 +64,8 @@ DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTE
 DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTENCE=postgres npm run seed
 DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTENCE=postgres npm run api
 ```
+
+`npm run api` and `npm run seed` load a local `.env` file when one exists (copy `.env.example`), so setting `DATABASE_URL` and `PERSISTENCE=postgres` there makes `npm run dev` use PostgreSQL without per-command environment variables. `.env` is git-ignored.
 
 The dashboard consumes `/api/projects`, `/api/findings`, `/api/rules`, and `/api/frameworks`; it is not populated by hardcoded dashboard metrics. The `dev` script starts both processes with `concurrently`.
 

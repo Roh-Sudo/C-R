@@ -16,9 +16,9 @@
     "compliance:scan": "node dist/apps/cli/src/index.js . --fail-on high",
     "compliance:scan:vulnerable": "node dist/apps/cli/src/index.js examples/vulnerable-app --format console",
     "compliance:scan:clean": "node dist/apps/cli/src/index.js examples/clean-app --format console",
-    "api": "node dist/apps/api/src/index.js",
+    "api": "node --env-file-if-exists=.env dist/apps/api/src/index.js",
     "dev": "npm run build && concurrently \"npm run api\" \"vite --config apps/web/vite.config.ts\"",
-    "seed": "node dist/apps/api/src/index.js --seed",
+    "seed": "node --env-file-if-exists=.env dist/apps/api/src/index.js --seed",
     "demo:seed": "npm run seed",
     "quality:benchmark": "npm run build && node dist/benchmarks/scripts/run.js",
     "quality:performance": "npm run build && node dist/benchmarks/scripts/performance.js",
@@ -28,7 +28,7 @@
     "release:check": "npm run build && npm test && npm run quality:benchmark && node -e \"console.log('version', require('./package.json').version)\""
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

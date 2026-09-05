@@ -57,4 +57,4 @@ Representative findings expose rule ID, severity, confidence, file/line location
 
 The final verification ran build/lint, 29 scanner/security regressions, PostgreSQL migrations, 9 PostgreSQL/customer integration tests, a real API-created `pg_dump`/database replacement/`pg_restore` cycle, post-restore API and dashboard proxy queries, tenant isolation, clean/vulnerable fixture scans, the 100/1,000/10,000-file performance benchmark, and the corrected CI quiet scan command.
 
-The PostgreSQL runtime configuration is required for the pilot: set `PERSISTENCE=postgres` and `DATABASE_URL`, apply migrations, and confirm `/ready` reports `postgresql-runtime-state`.
+The PostgreSQL runtime configuration is required for the pilot: set `PERSISTENCE=postgres` and `DATABASE_URL`, apply migrations, and confirm `/ready` reports `postgresql-normalized-scans+runtime-state`.

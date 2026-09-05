@@ -39,7 +39,7 @@ The customer-facing dashboard is available at `http://localhost:5173` after `npm
 
 ## Supported scope and blockers
 
-The pilot API must run with `DATABASE_URL` and PostgreSQL persistence. Set `PERSISTENCE=postgres` explicitly (or rely on the configured `DATABASE_URL` outside test mode), run migrations, and verify `/ready` reports `postgresql-runtime-state`. The JSON adapter is retained only for explicit local/test use via `PERSISTENCE=json`; production and `PILOT_MODE=true` reject silent JSON fallback. Use `pg_dump`/`pg_restore` against the same PostgreSQL database used by the API.
+The pilot API must run with `DATABASE_URL` and PostgreSQL persistence. Set `PERSISTENCE=postgres` explicitly (or rely on the configured `DATABASE_URL` outside test mode), run migrations, and verify `/ready` reports `postgresql-normalized-scans+runtime-state`. Scans, findings, AI components, and the append-only event logs are stored in normalized tables; the remaining domain state is still stored as a `runtime_state` JSONB document. The JSON adapter is retained only for explicit local/test use via `PERSISTENCE=json`; production and `PILOT_MODE=true` reject silent JSON fallback. Use `pg_dump`/`pg_restore` against the same PostgreSQL database used by the API.
 
 There is no API policy-selection or AI-governance update endpoint yet. Scanner policy is configured through `compliance.config.json`, and AI governance status is reviewed through the existing inventory/manual `ai-governance.yml` process.
 
@@ -81,6 +81,12 @@ Every project has an `enforcementMode`, changeable by an organization `OWNER`/`A
 - **`BLOCK`** (default): findings above the configured threshold fail the CI check.
 - **`WARN`**: findings are reported and visible in the dashboard, but never fail CI.
 - **`MONITOR`**: scanning still runs and records findings, but CI is never blocked - use this as an authorized, audited kill switch during a pilot incident (e.g. an unexpected false-positive spike) without turning scanning off entirely.
+
+The full project policy - `enforcementMode`, the `failOn` severity threshold, and the list of disabled rule ids - is read with `GET /api/projects/:id/policy` (organization member or the project's scanner token) and saved with `PUT /api/projects/:id/policy` (`OWNER`/`ADMIN` only, recorded as a `POLICY_UPDATED` audit event). The dashboard Projects page edits the same values.
+
+Run the scanner with `--remote-policy` for the persisted policy to apply: the CLI fetches it with the project token, uses the stored `failOn` and disabled rules for the scan, and lets `enforcementMode` decide the exit code (`BLOCK` fails the job, `WARN`/`MONITOR` report without blocking). The flag is opt-in so the CI file still shows that a remote policy governs the run, and an explicit `--fail-on` on the command line continues to win over the stored threshold. Each ingested scan records the `policyEnforcementMode`, `policyFailOn`, and `policyUpdatedAt` it was evaluated under.
+
+Changing the policy does not change which findings a scan closes: automatic resolution still only applies to the scanned project and only when the scan actually covered files and executed rules. A narrow or partial scan of a subtree cannot be distinguished from a full scan, so that conservative behaviour is unchanged and remains a known limitation.
 
 ## Fail-open vs. fail-closed CI behavior
 

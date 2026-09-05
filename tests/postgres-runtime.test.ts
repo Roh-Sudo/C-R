@@ -18,7 +18,7 @@ suite('PostgreSQL runtime persistence', () => {
     const mod = await import('../apps/api/src/index.js');
     client = new Client({ connectionString: databaseUrl });
     await client.connect();
-    await client.query('TRUNCATE runtime_state');
+    await client.query('TRUNCATE runtime_state, scan_findings, findings, scans, ai_components, audit_events, usage_records, commercial_events, projects, organizations CASCADE');
     server = mod.createServer();
     await new Promise<void>(resolve => server.listen(0, resolve));
     const address = server.address();
@@ -59,7 +59,9 @@ suite('PostgreSQL runtime persistence', () => {
     expect(stored.rows).toHaveLength(1);
     expect(stored.rows[0].state.organizations.map((item: { id: string }) => item.id)).toEqual(expect.arrayContaining([alphaId, betaId]));
     expect(stored.rows[0].state.projects.find((item: { id: string }) => item.id === projectId).tokenHash).not.toBe(token);
-    expect(stored.rows[0].state.findings.find((item: { id: string }) => item.id === findingId).status).toBe('RESOLVED');
+    // Scans and findings live in the normalized tables from migration 0003.
+    expect((await client.query('SELECT status FROM findings WHERE id = $1', [findingId])).rows[0].status).toBe('RESOLVED');
+    expect((await client.query('SELECT project_id FROM scans WHERE id = $1', [scan.body.scan.id])).rows[0].project_id).toBe(projectId);
 
     await new Promise<void>(resolve => server.close(() => resolve()));
     const mod = await import('../apps/api/src/index.js');
@@ -72,5 +74,8 @@ suite('PostgreSQL runtime persistence', () => {
     expect(afterRestart.status).toBe(200);
     expect(afterRestart.body.some((item: { id: string }) => item.id === projectId)).toBe(true);
     expect((await call('GET', '/api/projects', { userId: betaUser })).body.some((item: { id: string }) => item.id === projectId)).toBe(false);
+    expect((await call('GET', '/api/scans', { userId: alphaUser })).body.some((item: { id: string }) => item.id === scan.body.scan.id)).toBe(true);
+    expect((await call('GET', '/api/findings', { userId: alphaUser })).body.some((item: { id: string }) => item.id === findingId)).toBe(true);
+    expect((await call('GET', '/api/scans', { userId: betaUser })).body).toEqual([]);
   });
 });
