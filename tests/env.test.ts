@@ -34,4 +34,10 @@ describe('typed environment validation', () => {
     expect(env.nodeEnv).toBe('production');
     expect(env.databaseUrl).toBe('postgres://x');
   });
+
+  it('requires PostgreSQL in explicit pilot mode and never silently selects JSON', () => {
+    expect(() => loadEnv({ PILOT_MODE: 'true' })).toThrow(/PostgreSQL persistence/);
+    expect(loadEnv({ PILOT_MODE: 'true', DATABASE_URL: 'postgres://x' }).persistence).toBe('postgres');
+    expect(loadEnv({ PERSISTENCE: 'json' }).persistence).toBe('json');
+  });
 });

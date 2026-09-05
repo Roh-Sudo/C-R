@@ -1,9 +1,6 @@
 #!/usr/bin/env node
-// Minimal, honest migration runner for the prepared Postgres schema in
-// db/migrations/. The reference application does not read/write Postgres at
-// runtime yet (see docs/PRODUCTION-BLOCKERS.md); this tool exists so a real
-// database can be provisioned and kept in a known, versioned state ahead of
-// that work, without inventing commands that do not actually run.
+// Minimal migration runner for the PostgreSQL schema used by the pilot/runtime
+// adapter in db/migrations/. It applies additive migrations only.
 //
 // Usage:
 //   node scripts/db-migrate.mjs status
@@ -42,7 +39,7 @@ async function status() {
     console.log('Database migration status: NOT CONFIGURED');
     console.log(`Reason: ${reason}`);
     console.log(`Prepared migrations (not yet applied anywhere): ${migrations.join(', ') || '(none)'}`);
-    console.log('The API currently persists to a local JSON file and does not depend on this schema at runtime.');
+    console.log('The API requires DATABASE_URL/PERSISTENCE=postgres in pilot and production mode.');
     process.exitCode = 1;
     return;
   }

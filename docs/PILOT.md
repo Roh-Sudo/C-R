@@ -23,6 +23,26 @@ Open `http://localhost:5173`. The local demo uses fictional Acme Financial Demo 
 5. Add `--upload` to submit only redacted finding metadata and safe GitHub metadata.
 6. Review findings, suppressions, accepted risks, and AI inventory with an owner.
 
+## First-customer dry run
+
+The validated synthetic scenario is **Acme Technologies**. The dry run creates an organization, an owner, a project/repository, a project upload token, and a pilot, then scans the synthetic vulnerable repository before rescanning a remediated copy. It also exercises a redacted baseline, one new post-baseline violation, AI inventory, pilot metrics/report output, a clean repository scan, and organization export.
+
+The customer-facing dashboard is available at `http://localhost:5173` after `npm run dev`. The API and dashboard load successfully, but login is still the fictional development identity/header model; this is not production authentication.
+
+## Recommended pilot configuration
+
+- Use `MONITOR` while the repository baseline and findings are reviewed.
+- Create a redacted baseline with `--create-baseline`, review it with the customer, then scan with `--baseline ... --fail-on high`.
+- Move to `WARN` after the team understands the finding volume and remediation workflow.
+- Use `BLOCK` only for explicitly configured high-confidence policy findings after review; the default project mode remains conservative and owner/admin controlled.
+- Keep all repositories and values synthetic during this MVP dry-run stage.
+
+## Supported scope and blockers
+
+The pilot API must run with `DATABASE_URL` and PostgreSQL persistence. Set `PERSISTENCE=postgres` explicitly (or rely on the configured `DATABASE_URL` outside test mode), run migrations, and verify `/ready` reports `postgresql-runtime-state`. The JSON adapter is retained only for explicit local/test use via `PERSISTENCE=json`; production and `PILOT_MODE=true` reject silent JSON fallback. Use `pg_dump`/`pg_restore` against the same PostgreSQL database used by the API.
+
+There is no API policy-selection or AI-governance update endpoint yet. Scanner policy is configured through `compliance.config.json`, and AI governance status is reviewed through the existing inventory/manual `ai-governance.yml` process.
+
 ## Success metrics
 
 - Repositories and pull requests scanned

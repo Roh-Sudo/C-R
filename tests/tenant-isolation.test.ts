@@ -43,7 +43,9 @@ describe('tenant isolation regression (Organization Alpha vs Organization Beta)'
 
     const alphaOrg = await call('POST', '/api/organizations', { body: { name: 'Organization Alpha' }, userId: alphaUser });
     const alphaOrgId = alphaOrg.body.id as string;
-    await call('POST', '/api/organizations', { body: { name: 'Organization Beta' }, userId: betaUser });
+    const betaOrg = await call('POST', '/api/organizations', { body: { name: 'Organization Beta' }, userId: betaUser });
+    const betaProject = await call('POST', '/api/projects', { body: { organizationId: betaOrg.body.id, name: 'Beta Repo', repositoryName: 'beta/repo' }, userId: betaUser });
+    const betaProjectId = betaProject.body.project.id as string;
 
     const project = await call('POST', '/api/projects', { body: { organizationId: alphaOrgId, name: 'Alpha Repo', repositoryName: 'alpha/repo' }, userId: alphaUser });
     const projectId = project.body.project.id as string;
@@ -59,6 +61,12 @@ describe('tenant isolation regression (Organization Alpha vs Organization Beta)'
     const scan = await call('POST', '/api/scans', { body: { projectId, result: scanResult }, token });
     const scanId = scan.body.scan.id as string;
     const findingId = scan.body.scan.findingIds[0] as string;
+    const betaScan = await call('POST', '/api/scans', { body: { projectId: betaProjectId, result: { ...scanResult, aiComponents: [{ ...scanResult.aiComponents[0], id: 'ai_beta' }], findings: [{ ...scanResult.findings[0], fingerprint: 'fp_beta' }] } }, token: betaProject.body.token });
+    const betaFindingId = betaScan.body.scan.findingIds[0] as string;
+
+    // Nested-resource IDOR: Alpha must not create an Alpha pilot that references Beta's project.
+    const foreignPilot = await call('POST', '/api/pilots', { body: { organizationId: alphaOrgId, name: 'Foreign Project Pilot', projectIds: [betaProjectId] }, userId: alphaUser });
+    expect(foreignPilot.status).toBe(400);
 
     await call('POST', '/api/pilots', { body: { name: 'Alpha Pilot', projectIds: [projectId] }, userId: alphaUser });
 
@@ -72,18 +80,21 @@ describe('tenant isolation regression (Organization Alpha vs Organization Beta)'
     const betaScans = await call('GET', '/api/scans', { userId: betaUser });
     expect(betaScans.body.some((item: { id: string }) => item.id === scanId)).toBe(false);
 
-    const betaAI = await call('GET', '/api/ai-components', { userId: betaUser });
-    expect(betaAI.body.length).toBe(0);
+    const betaAI = await call('GET', '/api/ai-components', { userId: alphaUser });
+    expect(betaAI.body.some((item: { id: string }) => item.id === 'ai_beta')).toBe(false);
 
-    const betaPilots = await call('GET', '/api/pilots', { userId: betaUser });
-    expect(betaPilots.body.length).toBe(0);
+    const betaPilots = await call('GET', '/api/pilots', { userId: alphaUser });
+    expect(betaPilots.body.every((item: { projectIds: string[] }) => !item.projectIds.includes(betaProjectId))).toBe(true);
 
     const betaAudit = await call('GET', '/api/audit', { userId: betaUser });
     expect(betaAudit.body.some((item: { organizationId: string }) => item.organizationId === alphaOrgId)).toBe(false);
 
     // Direct resource-ID access (IDOR-style) must also be denied, not merely absent from list views.
     expect((await call('GET', `/api/projects/${projectId}`, { userId: betaUser })).status).toBe(404);
+    expect((await call('GET', `/api/projects/${betaProjectId}`, { userId: alphaUser })).status).toBe(404);
+    expect((await call('GET', `/api/findings/${betaFindingId}`, { userId: alphaUser })).status).toBe(404);
     expect((await call('PATCH', `/api/findings/${findingId}`, { body: { status: 'RESOLVED' }, userId: betaUser })).status).toBe(404);
+    expect((await call('PATCH', `/api/findings/${betaFindingId}`, { body: { status: 'RESOLVED' }, userId: alphaUser })).status).toBe(404);
     expect((await call('POST', `/api/findings/${findingId}/classification`, { body: { classification: 'FALSE_POSITIVE' }, userId: betaUser })).status).toBe(404);
     expect((await call('GET', `/api/organizations/${alphaOrgId}/billing`, { userId: betaUser })).status).toBe(404);
     expect((await call('POST', `/api/organizations/${alphaOrgId}/billing/change-plan`, { body: { planId: 'ENTERPRISE' }, userId: betaUser })).status).toBe(403);
@@ -93,6 +104,7 @@ describe('tenant isolation regression (Organization Alpha vs Organization Beta)'
     expect((await call('GET', `/api/organizations/${alphaOrgId}/audit/export`, { userId: betaUser })).status).toBe(403);
     expect((await call('GET', `/api/organizations/${alphaOrgId}/members`, { userId: betaUser })).status).toBe(404);
     expect((await call('POST', `/api/organizations/${alphaOrgId}/members`, { body: { userId: betaUser }, userId: betaUser })).status).toBe(404);
+    expect((await call('POST', '/api/scans', { body: { projectId: betaProjectId, result: scanResult }, token })).status).toBe(401);
 
     // Alpha can still access its own data (isolation must not be over-broad).
     expect((await call('GET', `/api/projects/${projectId}`, { userId: alphaUser })).status).toBe(200);

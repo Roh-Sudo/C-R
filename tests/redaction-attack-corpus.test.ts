@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
+import { vi } from 'vitest';
 import { scanDirectory, renderJson, renderSarif, renderConsole } from '../packages/compliance-core/src/index.js';
 
 // Comprehensive fake-secret corpus pushed through every reporter and the
@@ -20,7 +21,9 @@ describe('redaction attack corpus', () => {
     { label: 'private key', line: '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA1234567890fakeprivatekeymaterial\n-----END RSA PRIVATE KEY-----', secret: 'MIIEpAIBAAKCAQEA1234567890fakeprivatekeymaterial' },
     { label: 'SSN-like value', line: 'const customerSsn = "923-71-4455";', secret: '923-71-4455' },
     { label: 'payment-card-like value', line: 'const cardNumber = "4111 1111 1111 1111";', secret: '4111 1111 1111 1111' },
-    { label: 'AI prompt secret', line: `const prompt = "The customer's account recovery code is ${uniqueSuffix}-RECOVERY, do not share it.";`, secret: `${uniqueSuffix}-RECOVERY` }
+    { label: 'AI prompt secret', line: `const prompt = "The customer's account recovery code is ${uniqueSuffix}-RECOVERY, do not share it.";`, secret: `${uniqueSuffix}-RECOVERY` },
+    { label: 'sensitive nested user field', line: `const user = { profile: { email: "customer.${uniqueSuffix}@example.test" } };`, secret: `customer.${uniqueSuffix}@example.test` },
+    { label: 'embedded authorization header', line: `const request = JSON.stringify({ headers: { Authorization: "Bearer ${uniqueSuffix}.nested.token.value" } });`, secret: `${uniqueSuffix}.nested.token.value` }
   ];
 
   async function scanCorpus() {
@@ -38,6 +41,7 @@ describe('redaction attack corpus', () => {
     for (const item of corpus) {
       for (const surface of surfaces) {
         expect(surface, `${item.label} leaked into a reporter surface`).not.toContain(item.secret);
+        expect(surface, `${item.label} exposed its unique canary fragment`).not.toContain(uniqueSuffix);
       }
     }
   });
@@ -51,6 +55,11 @@ describe('redaction attack corpus', () => {
     const address = server.address();
     if (typeof address === 'string' || !address) throw new Error('server did not bind');
     const base = `http://127.0.0.1:${address.port}`;
+    const stderrWrites: string[] = [];
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(((chunk: string | Uint8Array) => {
+      stderrWrites.push(String(chunk));
+      return true;
+    }) as typeof process.stderr.write);
 
     try {
       const userId = `user_${randomBytes(4).toString('hex')}`;
@@ -69,13 +78,20 @@ describe('redaction attack corpus', () => {
       const auditCsvText = await (await fetch(`${base}/api/organizations/${org.id}/audit/export?format=csv`, { headers: { 'x-user-id': userId } })).text();
       const rawStoreText = await fs.readFile(process.env.PLATFORM_DATA_FILE!, 'utf8');
 
-      const surfaces = { scanText, findingsText, exportText, auditJsonText, auditCsvText, rawStoreText };
+      const malformedResponse = await fetch(`${base}/api/scans`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: `{"secret":"${corpus[0].secret}",` });
+      const malformedText = await malformedResponse.text();
+      expect(malformedResponse.status).toBe(400);
+      expect(malformedText).not.toContain(corpus[0].secret);
+
+      const surfaces = { scanText, findingsText, exportText, auditJsonText, auditCsvText, rawStoreText, malformedText, serverLogs: stderrWrites.join('') };
       for (const item of corpus) {
         for (const [surfaceName, surface] of Object.entries(surfaces)) {
           expect(surface, `${item.label} leaked into ${surfaceName}`).not.toContain(item.secret);
+          expect(surface, `${item.label} exposed its unique canary fragment in ${surfaceName}`).not.toContain(uniqueSuffix);
         }
       }
     } finally {
+      stderrSpy.mockRestore();
       await new Promise(resolve => server.close(resolve));
       await fs.rm(process.env.PLATFORM_DATA_FILE!, { force: true });
     }

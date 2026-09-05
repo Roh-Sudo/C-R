@@ -13,6 +13,7 @@ export type EnvConfig = {
  githubWebhookSecret?: string;
  billingWebhookSecret?: string;
  adminToken?: string;
+ persistence: 'json' | 'postgres';
 };
 
 export class EnvValidationError extends Error {
@@ -34,6 +35,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): EnvConfig {
   if (!source.CORS_ORIGIN || source.CORS_ORIGIN.trim() === '*') throw new EnvValidationError(['CORS_ORIGIN'], 'CORS_ORIGIN must be an explicit trusted origin in production; a wildcard origin is not allowed');
   if (!source.APP_URL!.startsWith('https://')) throw new EnvValidationError(['APP_URL'], 'APP_URL must use https:// in production');
  }
+ const persistence = source.PERSISTENCE === 'json' ? 'json' : (source.PERSISTENCE === 'postgres' || source.DATABASE_URL ? 'postgres' : 'json');
+ if (persistence === 'postgres' && !source.DATABASE_URL) throw new EnvValidationError(['DATABASE_URL'], 'PostgreSQL persistence requires DATABASE_URL');
+ if ((nodeEnv === 'production' || source.PILOT_MODE === 'true') && persistence !== 'postgres') throw new EnvValidationError(['DATABASE_URL', 'PERSISTENCE'], 'production and pilot mode require PostgreSQL persistence');
  return {
   nodeEnv,
   port: Number(source.PORT ?? 8787),
@@ -43,6 +47,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): EnvConfig {
   authSecret: source.AUTH_SECRET,
   githubWebhookSecret: source.GITHUB_WEBHOOK_SECRET,
   billingWebhookSecret: source.LOCAL_BILLING_WEBHOOK_SECRET,
-  adminToken: source.ADMIN_TOKEN
+    adminToken: source.ADMIN_TOKEN,
+    persistence
  };
 }

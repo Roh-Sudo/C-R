@@ -48,12 +48,21 @@ Current MVP scope: 22 deterministic rules across TypeScript, JavaScript, JSON, Y
 
 ## Platform Quick Start
 
-The optional platform adds a local API and React dashboard backed by persistent JSON storage in `.data/platform.json`:
+The optional platform adds a local API and React dashboard. Pilot/production runs use PostgreSQL via `DATABASE_URL` and `PERSISTENCE=postgres`; the JSON adapter at `.data/platform.json` is retained only for explicit local/test use:
 
 ```bash
 npm run seed
 npm run api                 # API: http://localhost:8787
 npx vite --config apps/web/vite.config.ts  # Dashboard: http://localhost:5173
+```
+
+For the PostgreSQL-backed pilot, start the local database, apply migrations, and verify `GET /ready` reports `postgresql-runtime-state`:
+
+```bash
+docker compose up -d postgres
+DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTENCE=postgres npm run db:migrate:deploy
+DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTENCE=postgres npm run seed
+DATABASE_URL=postgres://compliance:compliance@localhost:5432/compliance PERSISTENCE=postgres npm run api
 ```
 
 The dashboard consumes `/api/projects`, `/api/findings`, `/api/rules`, and `/api/frameworks`; it is not populated by hardcoded dashboard metrics. The `dev` script starts both processes with `concurrently`.
@@ -64,7 +73,7 @@ Phase 6 adds organization-scoped records, owner/admin/developer/viewer role prim
 
 Phase 7 adds a measurable pilot layer. Create a pilot through `POST /api/pilots`, inspect `/api/pilots/:id/metrics`, classify findings through `/api/findings/:id/classification`, and generate `/api/pilots/:id/report` as JSON or HTML. False-positive rate and rule precision use only explicitly classified findings; unreviewed findings are excluded. See [docs/PILOT-RUNBOOK.md](docs/PILOT-RUNBOOK.md) and [docs/ANALYTICS-PRIVACY.md](docs/ANALYTICS-PRIVACY.md).
 
-The local development identity is fictional (`user_owner`) and is not production authentication. Before handling internet-facing customer data, connect the session boundary to OIDC (Google/GitHub/enterprise SSO), replace the JSON adapter with PostgreSQL migrations and indexes, add secure cookies/CSRF protection, and configure TLS, shared rate limiting, encryption, backups, and retention jobs.
+The local development identity is fictional (`user_owner`) and is not production authentication. Before handling internet-facing customer data, connect the session boundary to OIDC (Google/GitHub/enterprise SSO), add secure cookies/CSRF protection, and configure TLS, shared rate limiting, encrypted backups, and retention jobs. Production and `PILOT_MODE=true` reject missing PostgreSQL configuration rather than falling back to JSON.
 
 ## CLI
 

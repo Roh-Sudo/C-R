@@ -41,6 +41,8 @@ Roles: `OWNER`, `ADMIN`, `DEVELOPER`, `VIEWER`. A blank cell for a non-member (n
 ## Gaps found and fixed during this review
 
 - **API token revocation had no endpoint.** `tokenRevokedAt` was checked at scan-ingestion time but nothing could ever set it, meaning a "revoked" token could never actually exist. Fixed: added `POST /api/projects/:id/revoke-token` and `POST /api/projects/:id/rotate-token`, both `OWNER`/`ADMIN` only, both audited (`TOKEN_REVOKED`/`TOKEN_ROTATED`), both covered by `tests/second-tenant-attack.test.ts` (a revoked token is rejected on the next scan attempt).
+- **Pilot project IDs were not tenant-scoped.** Fixed: pilot creation now rejects any requested project that does not belong to the pilot organization. Covered by the nested-resource regression in `tests/tenant-isolation.test.ts`.
+- **Direct finding reads returned a boolean for foreign IDs.** Fixed: `GET /api/findings/:id` now returns the same 404 denial used by other tenant-scoped resource reads. Covered by `tests/tenant-isolation.test.ts`.
 
 ## Gaps identified but intentionally out of pilot scope (not fixed - see PILOT-SCOPE.md)
 
@@ -50,4 +52,4 @@ Roles: `OWNER`, `ADMIN`, `DEVELOPER`, `VIEWER`. A blank cell for a non-member (n
 
 ## Cross-tenant verification
 
-Every `✅`/`❌` above was exercised through the actual HTTP API by two independent regression suites using two synthetic organizations (`tests/tenant-isolation.test.ts`: Organization Alpha vs. Organization Beta; `tests/second-tenant-attack.test.ts`: First Customer Dry Run vs. Attacker Tenant). Both suites pass as of this phase.
+Every `✅`/`❌` above was exercised through the actual HTTP API by the role and tenant regression suites using synthetic organizations and memberships: `tests/authorization-rbac.test.ts`, `tests/tenant-isolation.test.ts`, and `tests/second-tenant-attack.test.ts`. These cover direct IDs, nested project/finding/pilot relationships, project tokens, billing, audit, and exports.

@@ -79,6 +79,25 @@ describe('source-code privacy boundary', () => {
     }
   });
 
+  it('redacts PII evidence before it becomes part of the upload payload', async () => {
+    const fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'privacy-pii-fixture-'));
+    try {
+      const fakeEmail = 'privacy.test.person@synthetic.invalid';
+      const fakeSsn = '923-71-4455';
+      await fs.writeFile(path.join(fixtureDir, 'customer.json'), JSON.stringify({ email: fakeEmail, ssn: fakeSsn }));
+
+      const result = await scanDirectory(fixtureDir, { failOn: 'HIGH' });
+      const serialized = JSON.stringify(result);
+
+      expect(serialized).not.toContain(fakeEmail);
+      expect(serialized).not.toContain(fakeSsn);
+      expect(result.findings.some(finding => finding.evidence.includes('[EMAIL-REDACTED]'))).toBe(true);
+      expect(result.findings.some(finding => finding.evidence.includes('[SSN-REDACTED]'))).toBe(true);
+    } finally {
+      await fs.rm(fixtureDir, { recursive: true, force: true });
+    }
+  });
+
   it('documents exactly what leaves the environment via the CLI --upload payload shape', async () => {
     const fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'privacy-shape-fixture-'));
     try {

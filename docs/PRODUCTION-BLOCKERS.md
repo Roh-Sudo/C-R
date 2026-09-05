@@ -6,13 +6,13 @@ Categorized gap list produced during the Phase 10 production-readiness review. E
 
 ## BLOCKER
 
-### B1. No production database - the API still persists to a local JSON file
+### B1. No production database - resolved
 
-- **Description:** `apps/api/src/index.ts` reads/writes `.data/platform.json` (or `PLATFORM_DATA_FILE`). A Postgres schema is prepared (`db/migrations/0001_init.sql`) and a migration runner exists (`scripts/db-migrate.mjs`), but the API does not read or write Postgres at runtime.
-- **Impact:** No encryption at rest, no concurrent-writer safety, no meaningful backup/restore story, and a single-process memory model that cannot scale past one API instance.
+- **Description:** The API now selects PostgreSQL runtime persistence when `PERSISTENCE=postgres` or `DATABASE_URL` is configured outside test mode. The JSON adapter is explicit local/test only.
+- **Impact:** PostgreSQL backups and restores now cover the runtime state used by the API. The JSON adapter remains unsuitable for multi-process production use.
 - **Owner:** _unassigned_
-- **Resolution:** Wire the API's `readStore`/`writeStore` (and all direct array mutations) to the Postgres schema, behind the same function signatures so route handlers do not change. Add integration tests against a real Postgres instance (already validated manually in this phase; see `scripts/db-migrate.mjs`).
-- **Status:** OPEN
+- **Resolution:** Completed with `db/migrations/0002_runtime_state.sql`, PostgreSQL runtime integration tests, and API-created backup/restore validation in `docs/DATABASE-RECOVERY.md`.
+- **Status:** RESOLVED
 
 ### B2. No production authentication - `x-user-id` is an unauthenticated header
 
@@ -50,13 +50,13 @@ Categorized gap list produced during the Phase 10 production-readiness review. E
 
 ## MEDIUM
 
-### M1. `/ready` does not verify a real dependency
+### M1. `/ready` does not verify a real dependency - resolved for PostgreSQL mode
 
-- **Description:** `readStore()` never throws (it falls back to an empty store on any read error), so the readiness check always reports `ready: true` regardless of actual storage health.
+- **Description:** PostgreSQL mode reads the runtime-state row on readiness checks and returns `503` when PostgreSQL is unavailable. JSON mode remains a local/test adapter.
 - **Impact:** A broken storage layer would not be visible through `/ready`, delaying detection of an outage.
 - **Owner:** _unassigned_
-- **Resolution:** Once B1 lands, `/ready` should perform a real `SELECT 1`-equivalent query and return `503` on failure.
-- **Status:** OPEN
+- **Resolution:** Completed as part of the PostgreSQL runtime adapter.
+- **Status:** RESOLVED
 
 ### M2. No automated backup execution
 

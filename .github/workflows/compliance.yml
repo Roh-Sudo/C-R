@@ -28,7 +28,7 @@ jobs:
       - if: always()
         run: node dist/apps/cli/src/index.js . --format sarif --fail-on high --output compliance-results.sarif
       - if: ${{ env.COMPLIANCE_API_URL != '' && env.COMPLIANCE_PROJECT_ID != '' && env.COMPLIANCE_API_TOKEN != '' }}
-        run: node dist/apps/cli/src/index.js . --format quiet --upload --fail-on high
+        run: node dist/apps/cli/src/index.js . --format console --quiet --upload --fail-on high
       - uses: actions/upload-artifact@v4
         if: always()
         with:
