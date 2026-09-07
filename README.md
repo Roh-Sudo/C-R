@@ -4,6 +4,12 @@ Compliance-as-Code is a local, engineering-native scanner for finding potential 
 
 ## Architecture
 
+### Experimental AI execution gate
+
+An additive local library now checks registered agent tool calls against explicit argument policies, write permissions, and per-run call budgets before dispatch. It returns metadata-only audit events and blocks selected sensitive-input patterns. It is an opt-in prototype, not a sandbox or complete data-loss-prevention system.
+
+Run `npm run build && node dist/apps/agent-gate-demo/src/index.js` for a fake, offline demonstration. See [AI execution gate architecture](docs/AI-EXECUTION-GATE.md) for the customer hypothesis, trust boundary, limitations, and production roadmap.
+
 ```text
 Developer
 	|
